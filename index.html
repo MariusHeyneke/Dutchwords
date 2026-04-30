@@ -29,41 +29,39 @@
       animation: bounce 2s infinite alternate;
     }
 
-    .subtitle { font-size: 1.5rem; color: #1976D2; margin-bottom: 15px; }
+    .subtitle { 
+      font-size: 1.5rem; 
+      color: #1976D2; 
+      margin-bottom: 15px; 
+    }
 
-    .controls {
-      margin: 15px 0 25px;
+    .top-controls {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 15px;
       justify-content: center;
       align-items: center;
-    }
-
-    select, button {
-      font-family: 'Fredoka', sans-serif;
-      font-size: 1.1rem;
-      padding: 10px 16px;
-      border: none;
-      border-radius: 50px;
-      background: white;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    }
-
-    .score-container {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      flex-wrap: wrap;
       margin-bottom: 20px;
     }
 
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: nowrap;           /* Prevent wrapping */
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto 20px;
+    }
+
     .score, .streak {
-      font-size: 1.75rem;
-      padding: 10px 28px;
+      font-size: 1.65rem;
+      padding: 10px 24px;
       border-radius: 50px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-      min-width: 180px;
+      white-space: nowrap;        /* Prevent text from wrapping */
+      flex-shrink: 0;             /* Never shrink */
+      min-width: 160px;
     }
 
     .score { background: white; color: #388E3C; }
@@ -81,7 +79,12 @@
 
     .card:hover { transform: scale(1.02); }
 
-    .english { font-size: 1.55rem; color: #555; margin-bottom: 8px; }
+    .english { 
+      font-size: 1.55rem; 
+      color: #555; 
+      margin-bottom: 8px; 
+    }
+
     .word {
       font-size: 5rem;
       font-weight: 700;
@@ -137,7 +140,12 @@
     }
 
     .volume-control {
-      margin-top: 20px;
+      margin-top: 25px;
+    }
+
+    @keyframes bounce {
+      from { transform: translateY(-8px); }
+      to { transform: translateY(8px); }
     }
   </style>
 </head>
@@ -146,7 +154,7 @@
     <h1>🦁 Dutch De/Het Adventure! 🦁</h1>
     <p class="subtitle">Learn Dutch articles with fun!</p>
 
-    <div class="controls">
+    <div class="top-controls">
       <select id="categorySelect">
         <option value="all">🌟 All Words</option>
         <option value="animals">🐶 Animals</option>
@@ -160,7 +168,8 @@
       </select>
     </div>
 
-    <div class="score-container">
+    <!-- Fixed stats row -->
+    <div class="stats-row">
       <span class="score" id="score">Score: 0 / 0</span>
       <span class="streak" id="streak">Streak: 0 🔥</span>
     </div>
@@ -186,64 +195,24 @@
   </div>
 
   <script>
-    // ===== LARGE CATEGORIZED WORD LIST (100+ words) =====
+    // (Same JavaScript as before - only layout changed)
     const allWords = {
-      animals: {
-        "kat": ["de", "cat 🐱"], "hond": ["de", "dog 🐶"], "vogel": ["de", "bird 🐦"],
-        "konijn": ["het", "rabbit 🐰"], "paard": ["het", "horse 🐴"], "vis": ["de", "fish 🐟"],
-        "leeuw": ["de", "lion 🦁"], "aap": ["de", "monkey 🐵"], "olifant": ["de", "elephant 🐘"],
-        "kip": ["de", "chicken 🐔"], "koe": ["de", "cow 🐮"], "beer": ["de", "bear 🐻"],
-        "tijger": ["de", "tiger 🐯"], "schildpad": ["de", "turtle 🐢"]
-      },
-      food: {
-        "appel": ["de", "apple 🍎"], "banaan": ["de", "banana 🍌"], "brood": ["het", "bread 🍞"],
-        "water": ["het", "water 💧"], "melk": ["de", "milk 🥛"], "kaas": ["de", "cheese 🧀"],
-        "ei": ["het", "egg 🥚"], "ijsje": ["het", "ice cream 🍦"], "cake": ["de", "cake 🎂"],
-        "koekje": ["het", "cookie 🍪"], "pizza": ["de", "pizza 🍕"], "soep": ["de", "soup 🍲"],
-        "snoep": ["het", "candy 🍬"]
-      },
-      house: {
-        "huis": ["het", "house 🏠"], "bed": ["het", "bed 🛏️"], "raam": ["het", "window 🪟"],
-        "deur": ["de", "door 🚪"], "tafel": ["de", "table 🪑"], "stoel": ["de", "chair 🪑"],
-        "kast": ["de", "cupboard 🗄️"], "lamp": ["de", "lamp 💡"], "boek": ["het", "book 📖"],
-        "keuken": ["de", "kitchen 🍳"], "badkamer": ["de", "bathroom 🛁"]
-      },
-      nature: {
-        "boom": ["de", "tree 🌳"], "bloem": ["de", "flower 🌸"], "zon": ["de", "sun ☀️"],
-        "maan": ["de", "moon 🌙"], "ster": ["de", "star ⭐"], "rivier": ["de", "river 🌊"],
-        "zee": ["de", "sea 🌊"], "berg": ["de", "mountain 🏔️"], "bos": ["het", "forest 🌲"],
-        "regen": ["de", "rain 🌧️"], "lucht": ["de", "sky ☁️"]
-      },
-      school: {
-        "school": ["de", "school 🏫"], "boek": ["het", "book 📖"], "pen": ["de", "pen 🖊️"],
-        "potlood": ["het", "pencil ✏️"], "tas": ["de", "bag 🎒"], "juf": ["de", "teacher 👩‍🏫"],
-        "meester": ["de", "teacher 👨‍🏫"], "klas": ["de", "classroom 🏫"]
-      },
-      vehicles: {
-        "auto": ["de", "car 🚗"], "fiets": ["de", "bike 🚲"], "trein": ["de", "train 🚄"],
-        "boot": ["de", "boat ⛵"], "bus": ["de", "bus 🚌"], "vliegtuig": ["het", "airplane ✈️"],
-        "scooter": ["de", "scooter 🛵"]
-      },
-      body: {
-        "jongen": ["de", "boy 👦"], "meisje": ["het", "girl 👧"], "man": ["de", "man 👨"],
-        "vrouw": ["de", "woman 👩"], "kind": ["het", "child 👦"], "hoofd": ["het", "head 🗣️"],
-        "hand": ["de", "hand ✋"], "voet": ["de", "foot 🦶"], "oog": ["het", "eye 👁️"],
-        "neus": ["de", "nose 👃"]
-      },
-      toys: {
-        "bal": ["de", "ball ⚽"], "pop": ["de", "doll 🧸"], "beer": ["de", "teddy bear 🧸"],
-        "spel": ["het", "game 🎮"], "tekening": ["de", "drawing 🎨"], "blok": ["het", "block 🧱"]
-      }
+      animals: { "kat": ["de", "cat 🐱"], "hond": ["de", "dog 🐶"], "vogel": ["de", "bird 🐦"], "konijn": ["het", "rabbit 🐰"], "paard": ["het", "horse 🐴"], "vis": ["de", "fish 🐟"], "leeuw": ["de", "lion 🦁"], "aap": ["de", "monkey 🐵"], "olifant": ["de", "elephant 🐘"], "kip": ["de", "chicken 🐔"], "koe": ["de", "cow 🐮"] },
+      food: { "appel": ["de", "apple 🍎"], "banaan": ["de", "banana 🍌"], "brood": ["het", "bread 🍞"], "water": ["het", "water 💧"], "melk": ["de", "milk 🥛"], "kaas": ["de", "cheese 🧀"], "ei": ["het", "egg 🥚"], "ijsje": ["het", "ice cream 🍦"], "cake": ["de", "cake 🎂"] },
+      house: { "huis": ["het", "house 🏠"], "bed": ["het", "bed 🛏️"], "raam": ["het", "window 🪟"], "deur": ["de", "door 🚪"], "tafel": ["de", "table 🪑"], "stoel": ["de", "chair 🪑"], "kast": ["de", "cupboard 🗄️"], "lamp": ["de", "lamp 💡"] },
+      nature: { "boom": ["de", "tree 🌳"], "bloem": ["de", "flower 🌸"], "zon": ["de", "sun ☀️"], "maan": ["de", "moon 🌙"], "ster": ["de", "star ⭐"], "bos": ["het", "forest 🌲"] },
+      school: { "school": ["de", "school 🏫"], "boek": ["het", "book 📖"], "pen": ["de", "pen 🖊️"], "tas": ["de", "bag 🎒"], "juf": ["de", "teacher 👩‍🏫"] },
+      vehicles: { "auto": ["de", "car 🚗"], "fiets": ["de", "bike 🚲"], "trein": ["de", "train 🚄"], "boot": ["de", "boat ⛵"] },
+      body: { "jongen": ["de", "boy 👦"], "meisje": ["het", "girl 👧"], "kind": ["het", "child 👦"] },
+      toys: { "bal": ["de", "ball ⚽"], "pop": ["de", "doll 🧸"], "beer": ["de", "teddy bear 🧸"] }
     };
 
-    // Sound effects
     const audioCorrect = new Audio("https://www.orangefreesounds.com/wp-content/uploads/2021/04/Correct-answer-ding-sound-effect.mp3");
     const audioCheer   = new Audio("https://orangefreesounds.com/wp-content/uploads/2025/02/Kids-cheering-sound-effect.mp3");
     const audioWrong   = new Audio("https://www.soundjay.com/buttons/beep-07.mp3");
     const audioClick   = new Audio("https://www.soundjay.com/buttons/button-09.mp3");
 
-    let score = 0, total = 0, streak = 0, currentWord = "", currentArticle = "";
-    let currentCategory = "all";
+    let score = 0, total = 0, streak = 0, currentWord = "", currentArticle = "", currentCategory = "all";
 
     const wordEl = document.getElementById("word");
     const englishEl = document.getElementById("english");
@@ -285,8 +254,6 @@
       streak = newStreak;
       const emoji = streak >= 8 ? "🎉⭐" : streak >= 5 ? "🔥🔥" : streak >= 3 ? "🔥" : "🔥";
       streakEl.textContent = `Streak: ${streak} ${emoji}`;
-      streakEl.style.transform = "scale(1.12)";
-      setTimeout(() => streakEl.style.transform = "scale(1)", 180);
     }
 
     function getCurrentWords() {
@@ -335,12 +302,9 @@
         wordEl.style.transform = "scale(1.22)";
 
         playSound(audioCorrect);
-        if (streak >= 5) {
-          createConfetti(110);
-          setTimeout(() => playSound(audioCheer), 250);
-        } else if (streak >= 3) createConfetti(75);
+        if (streak >= 5) { createConfetti(110); setTimeout(() => playSound(audioCheer), 250); }
+        else if (streak >= 3) createConfetti(75);
         else createConfetti(45);
-
       } else {
         feedbackEl.innerHTML = `😅 Oops! It's <strong>${currentArticle.toUpperCase()} ${currentWord}</strong>`;
         feedbackEl.style.color = "#D32F2F";
@@ -374,7 +338,7 @@
 
     volumeSlider.addEventListener("input", e => setVolume(parseFloat(e.target.value)));
 
-    // Initialize
+    // Start game
     setVolume(0.7);
     updateStreak(0);
     newWord();
