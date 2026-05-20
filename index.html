@@ -132,17 +132,7 @@
     <p class="subtitle">Guess de or het and build your streak!</p>
 
     <div class="controls">
-      <select id="categorySelect">
-        <option value="all">🌟 All Words</option>
-        <option value="animals">🐶 Animals</option>
-        <option value="food">🍎 Food & Drink</option>
-        <option value="house">🏠 House & Objects</option>
-        <option value="nature">🌳 Nature</option>
-        <option value="school">🏫 School</option>
-        <option value="vehicles">🚗 Vehicles</option>
-        <option value="body">👦 Body & People</option>
-        <option value="toys">🎮 Toys & Fun</option>
-      </select>
+      <select id="categorySelect" aria-label="Word category"></select>
     </div>
 
     <div class="score-container">
@@ -168,7 +158,22 @@
   <script>
     let allWords = {};
     let score = 0, total = 0, streak = 0;
-    let currentWord = "", currentArticle = "", currentCategory = "all";
+    let currentWord = "", currentArticle = "", currentEnglish = "";
+    let currentCategory = "all";
+    let lastEntryId = "";
+
+    const CATEGORY_LABELS = {
+      animals: "🐶 Animals",
+      food: "🍎 Food & Drink",
+      house: "🏠 House & Objects",
+      nature: "🌳 Nature",
+      school: "🏫 School",
+      vehicles: "🚗 Vehicles",
+      body: "👦 Body & People",
+      toys: "🎮 Toys & Fun",
+      clothes: "👕 Clothes",
+      misc: "✨ Misc"
+    };
 
     const wordEl = document.getElementById("word");
     const englishEl = document.getElementById("english");
@@ -213,11 +218,22 @@
       streakEl.textContent = `Streak: ${streak} ${emoji}`;
     }
 
+    function populateCategorySelect() {
+      categorySelect.innerHTML = '<option value="all">🌟 All Words</option>';
+      for (const key of Object.keys(allWords)) {
+        const option = document.createElement("option");
+        option.value = key;
+        option.textContent = CATEGORY_LABELS[key] || key;
+        categorySelect.appendChild(option);
+      }
+    }
+
     async function loadWords() {
       try {
         const response = await fetch('words.json');
         const data = await response.json();
         allWords = data.categories;
+        populateCategorySelect();
         newWord();
       } catch (err) {
         console.error("Failed to load words.json", err);
@@ -225,25 +241,50 @@
       }
     }
 
-    function getCurrentWords() {
+    function getCurrentEntries() {
       if (currentCategory === "all") {
-        let merged = {};
-        Object.values(allWords).forEach(cat => Object.assign(merged, cat));
-        return merged;
+        const entries = [];
+        for (const [category, words] of Object.entries(allWords)) {
+          for (const [word, [article, english]] of Object.entries(words)) {
+            entries.push({ id: `${category}|${word}`, word, article, english });
+          }
+        }
+        return entries;
       }
-      return allWords[currentCategory] || allWords.animals;
+
+      const words = allWords[currentCategory];
+      if (!words) return [];
+
+      return Object.entries(words).map(([word, [article, english]]) => ({
+        id: word,
+        word,
+        article,
+        english
+      }));
+    }
+
+    function pickEntry(entries) {
+      if (entries.length === 1) return entries[0];
+
+      let entry;
+      do {
+        entry = entries[Math.floor(Math.random() * entries.length)];
+      } while (entry.id === lastEntryId);
+      return entry;
     }
 
     function newWord() {
-      const words = getCurrentWords();
-      const keys = Object.keys(words);
-      if (keys.length === 0) return;
+      const entries = getCurrentEntries();
+      if (entries.length === 0) return;
 
-      currentWord = keys[Math.floor(Math.random() * keys.length)];
-      [currentArticle, english] = words[currentWord];
+      const entry = pickEntry(entries);
+      lastEntryId = entry.id;
+      currentWord = entry.word;
+      currentArticle = entry.article;
+      currentEnglish = entry.english;
 
       wordEl.textContent = currentWord.toUpperCase();
-      englishEl.textContent = english;
+      englishEl.textContent = currentEnglish;
       wordEl.style.color = "#1976D2";
 
       feedbackEl.textContent = "";
@@ -297,6 +338,7 @@
 
     categorySelect.addEventListener("change", () => {
       currentCategory = categorySelect.value;
+      lastEntryId = "";
       streak = 0;
       updateStreak(0);
       newWord();
